@@ -1,0 +1,6 @@
+{
+  "name": "CPR Medical Academy - Residency Paediatrics Quiz",
+  "description": "Interactive Residency MD Paediatrics Examination Platform featuring Neurology, Endocrinology, and Rheumatology MCQs & SBAs with instant scoring, leaderboard, and performance analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

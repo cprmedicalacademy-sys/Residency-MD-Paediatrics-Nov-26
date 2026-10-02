@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CPR Medical Academy - Residency MD Paediatrics Quiz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono-nums { font-family: 'Space Grotesk', monospace; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex flex-col">
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-lg">
+          🩺
+        </div>
+        <div>
+          <span class="text-base font-bold text-slate-900 block leading-tight">CPR MEDICAL ACADEMY</span>
+          <span class="text-xs text-slate-500 font-medium">Residency MD Paediatrics Faculty Nov-26</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="navQuizBtn" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800">Quiz Exam</button>
+        <button id="navDashBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100">Dashboard</button>
+        <button id="navLeadBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100">Leaderboard</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Formula Banner -->
+  <div class="bg-teal-900 text-teal-50 py-2.5 px-4 text-xs text-center border-b border-teal-800">
+    <span class="font-bold text-amber-300">Official Scoring Formula:</span>
+    <span class="font-mono ml-1 font-bold">[(Correct MCQ - Wrong MCQ) × 0.2] + Correct SBA - (Wrong MCQ × 0.05)</span>
+    <span class="ml-2 text-teal-200">· Max 40.0 Marks</span>
+  </div>
+
+  <!-- App Views Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full" id="mainContainer">
+    <!-- Injected dynamically by JavaScript below -->
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
+    CPR Medical Academy · Residency MD Paediatrics Faculty Nov-26
+  </footer>
+
+  <script>
+    // Exact Questions Dataset (35 MCQs + 5 SBAs)
+    const QUESTIONS = [
+      { id: 1, type: 'mcq', topic: 'Neurology', stem: "Common metabolic abnormalities that can cause seizures include:", options: [
+        { id: 'A', text: "Hypoglycemia", isTrue: true },
+        { id: 'B', text: "Hyponatremia", isTrue: true },
+        { id: 'C', text: "Hypocalcemia", isTrue: true },
+        { id: 'D', text: "Hypochloremia", isTrue: true },
+        { id: 'E', text: "Hypomagnesemia", isTrue: false }
+      ]},
+      { id: 2, type: 'mcq', topic: 'Neurology', stem: "Indications for Lumbar Puncture (LP) in febrile seizures are:", options: [
+        { id: 'A', text: "Age < 6 months", isTrue: true },
+        { id: 'B', text: "Appearing ill", isTrue: true },
+        { id: 'C', text: "6 to 12 months of age whose immunization status is unknown", isTrue: true },
+        { id: 'D', text: "6 to 12 months of age and deficient in Haemophilus influenzae and Streptococcus pneumoniae immunization", isTrue: false },
+        { id: 'E', text: "Pretreated with antibiotics", isTrue: true }
+      ]},
+      { id: 3, type: 'mcq', topic: 'Neurology', stem: "Known risk factors of cerebral palsy are:", options: [
+        { id: 'A', text: "Severe neonatal jaundice", isTrue: true },
+        { id: 'B', text: "Infants of diabetic mothers", isTrue: true },
+        { id: 'C', text: "Birth weight of 1000 grams", isTrue: true },
+        { id: 'D', text: "Neonatal sepsis", isTrue: true },
+        { id: 'E', text: "Hypoxic-ischemic encephalopathy", isTrue: true }
+      ]},
+      { id: 4, type: 'mcq', topic: 'Neurology', stem: "Habit disorders are:", options: [
+        { id: 'A', text: "Autism", isTrue: false },
+        { id: 'B', text: "Head banging", isTrue: true },
+        { id: 'C', text: "Trichotillomania", isTrue: true },
+        { id: 'D', text: "ADHD", isTrue: false },
+        { id: 'E', text: "Breath-holding attack", isTrue: true }
+      ]},
+      { id: 5, type: 'mcq', topic: 'Neurology', stem: "Features of typical febrile seizures:", options: [
+        { id: 'A', text: "Seizure persisting < 15 minutes", isTrue: true },
+        { id: 'B', text: "Occur once in 24 hours", isTrue: true },
+        { id: 'C', text: "Epilepsy is a common sequela", isTrue: false },
+        { id: 'D', text: "CSF protein is elevated", isTrue: false },
+        { id: 'E', text: "Associated with intracranial infection", isTrue: false }
+      ]},
+      { id: 6, type: 'mcq', topic: 'Neurology', stem: "Extrapyramidal lesions cause:", options: [
+        { id: 'A', text: "Tremor at rest", isTrue: true },
+        { id: 'B', text: "Muscle paralysis", isTrue: false },
+        { id: 'C', text: "Cogwheel rigidity", isTrue: true },
+        { id: 'D', text: "An abnormal gait", isTrue: true },
+        { id: 'E', text: "Muscle wasting", isTrue: false }
+      ], explanation: "Muscle paralysis and muscle wasting are absent; cogwheel and lead-pipe rigidity are present." },
+      { id: 7, type: 'mcq', topic: 'Neurology', stem: "Features characteristic of Guillain-Barre syndrome:", options: [
+        { id: 'A', text: "Both proximal and distal muscles are involved", isTrue: true },
+        { id: 'B', text: "Cardiac involvement occurs early", isTrue: false },
+        { id: 'C', text: "Bulbar involvement is rare", isTrue: false },
+        { id: 'D', text: "CSF protein is elevated more than twice", isTrue: true },
+        { id: 'E', text: "CSF pleocytosis", isTrue: false }
+      ], explanation: "Distal muscles are more involved than proximal; protein elevated up to 400-500 mg/dl (albuminocytological dissociation)." },
+      { id: 8, type: 'mcq', topic: 'Neurology', stem: "Regarding Guillain-Barre syndrome:", options: [
+        { id: 'A', text: "Motor nerves are mainly involved", isTrue: true },
+        { id: 'B', text: "Sensory nerves are not involved", isTrue: false },
+        { id: 'C', text: "Autonomic nerves are never involved", isTrue: false },
+        { id: 'D', text: "Progress of paralysis lasts up to 14 days", isTrue: false },
+        { id: 'E', text: "High CSF protein is found", isTrue: true }
+      ], explanation: "Sensory and autonomic nerves can be involved; mild sensory symptoms are supportive." },
+      { id: 9, type: 'mcq', topic: 'Neurology', stem: "Gower sign positive in:", options: [
+        { id: 'A', text: "Duchenne muscular dystrophy", isTrue: true },
+        { id: 'B', text: "Becker muscular dystrophy", isTrue: true },
+        { id: 'C', text: "Juvenile idiopathic arthritis", isTrue: false },
+        { id: 'D', text: "Juvenile dermatomyositis", isTrue: true },
+        { id: 'E', text: "Osteogenesis imperfecta", isTrue: false }
+      ]},
+      { id: 10, type: 'mcq', topic: 'Neurology', stem: "Wilson disease:", options: [
+        { id: 'A', text: "X-linked recessive disorder", isTrue: false },
+        { id: 'B', text: "Associated with low serum ceruloplasmin level", isTrue: true },
+        { id: 'C', text: "Can manifest in newborns", isTrue: false },
+        { id: 'D', text: "Has hepatic as well as neurologic manifestations", isTrue: true },
+        { id: 'E', text: "Associated with cherry-red spots in eyes", isTrue: false }
+      ], explanation: "Autosomal recessive; features Kayser-Fleischer rings and sunflower cataracts." },
+      { id: 11, type: 'mcq', topic: 'Endocrinology', stem: "A newborn with congenital hypothyroidism:", options: [
+        { id: 'A', text: "Sleeps more", isTrue: true },
+        { id: 'B', text: "Feeds well", isTrue: false },
+        { id: 'C', text: "Has prolonged neonatal jaundice", isTrue: true },
+        { id: 'D', text: "Passes meconium early", isTrue: false },
+        { id: 'E', text: "Has normal birth weight", isTrue: true }
+      ], explanation: "Feeding difficulties occur; delayed meconium passage >24 hours; normal birth weight." },
+      { id: 12, type: 'mcq', topic: 'Endocrinology', stem: "Congenital adrenal hyperplasia is associated with:", options: [
+        { id: 'A', text: "Autosomal recessive pattern of inheritance", isTrue: true },
+        { id: 'B', text: "21-beta-hydroxylase deficiency as the commonest defect", isTrue: true },
+        { id: 'C', text: "High cortisol", isTrue: false },
+        { id: 'D', text: "Low ACTH", isTrue: false },
+        { id: 'E', text: "Atypical genitalia", isTrue: true }
+      ], explanation: "21-OH deficiency accounts for 80% cases; cortisol decreased, ACTH increased." },
+      { id: 13, type: 'mcq', topic: 'Endocrinology', stem: "Delayed bone age may be associated with:", options: [
+        { id: 'A', text: "Growth hormone deficiency", isTrue: true },
+        { id: 'B', text: "Constitutional delay", isTrue: true },
+        { id: 'C', text: "Genetic short stature", isTrue: true },
+        { id: 'D', text: "Congenital hypothyroidism", isTrue: true },
+        { id: 'E', text: "Familial short stature", isTrue: false }
+      ], explanation: "In familial short stature, bone age is normal." },
+      { id: 14, type: 'mcq', topic: 'Endocrinology', stem: "Diabetes insipidus is associated with:", options: [
+        { id: 'A', text: "Polydipsia", isTrue: true },
+        { id: 'B', text: "Excessive secretion of vasopressin", isTrue: false },
+        { id: 'C', text: "Urine specific gravity is greater than 1.020", isTrue: false },
+        { id: 'D', text: "Water deprivation test is diagnostic", isTrue: true },
+        { id: 'E', text: "Serum osmolality is greater than 297 mosmol/kg", isTrue: true }
+      ], explanation: "Low specific gravity <1.005, unable to concentrate urine." },
+      { id: 15, type: 'mcq', topic: 'Endocrinology', stem: "Causes of disproportionate short stature:", options: [
+        { id: 'A', text: "Rickets", isTrue: true },
+        { id: 'B', text: "Constitutional delay in growth and puberty", isTrue: false },
+        { id: 'C', text: "Achondroplasia", isTrue: true },
+        { id: 'D', text: "Congenital hypothyroidism", isTrue: true },
+        { id: 'E', text: "Turner syndrome", isTrue: false }
+      ]},
+      { id: 16, type: 'mcq', topic: 'Rheumatology', stem: "Regarding rheumatic fever:", options: [
+        { id: 'A', text: "Arthralgia is a major criterion in low-risk populations", isTrue: false },
+        { id: 'B', text: "Is an immune-mediated disease", isTrue: true },
+        { id: 'C', text: "Lifelong prophylaxis is not required with residual heart disease", isTrue: false },
+        { id: 'D', text: "Carditis involves only the myocardium", isTrue: false },
+        { id: 'E', text: "Soft systolic murmur is found in the acute stage", isTrue: false }
+      ], explanation: "Pancarditis involves all 3 layers; high pitch holosystolic murmur of mitral regurgitation." },
+      { id: 17, type: 'mcq', topic: 'Rheumatology', stem: "Regarding rheumatic fever (clinical features):", options: [
+        { id: 'A', text: "It is an autoimmune disease", isTrue: false },
+        { id: 'B', text: "Carditis usually does not occur in the first attack", isTrue: false },
+        { id: 'C', text: "Tricuspid valve is usually involved", isTrue: false },
+        { id: 'D', text: "Chorea can be a lone presentation", isTrue: true },
+        { id: 'E', text: "Subcutaneous nodule can be a lone presentation", isTrue: false }
+      ], explanation: "Mitral valve is predominantly involved; chorea can occur as a sole manifestation." },
+      { id: 18, type: 'mcq', topic: 'Rheumatology', stem: "Characteristic features of SLE include:", options: [
+        { id: 'A', text: "Raynaud’s phenomenon", isTrue: false },
+        { id: 'B', text: "Alopecia", isTrue: true },
+        { id: 'C', text: "Absence of renal complication", isTrue: false },
+        { id: 'D', text: "Pancytopenia", isTrue: true },
+        { id: 'E', text: "Migratory polyarthritis", isTrue: true }
+      ]},
+      { id: 19, type: 'mcq', topic: 'Rheumatology', stem: "Kawasaki disease in children has the following features:", options: [
+        { id: 'A', text: "High fever five days or more", isTrue: true },
+        { id: 'B', text: "A decrease in platelet count", isTrue: false },
+        { id: 'C', text: "Coronary artery aneurysm", isTrue: true },
+        { id: 'D', text: "Limping", isTrue: false },
+        { id: 'E', text: "Decrease in white cell count", isTrue: true }
+      ]},
+      { id: 20, type: 'mcq', topic: 'Rheumatology', stem: "In systemic JIA, fever and arthritis may be accompanied by:", options: [
+        { id: 'A', text: "Dactylitis", isTrue: false },
+        { id: 'B', text: "Evanescent rash", isTrue: true },
+        { id: 'C', text: "Hepatosplenomegaly / Lymphadenopathy", isTrue: true },
+        { id: 'D', text: "Urinary tract infection", isTrue: true },
+        { id: 'E', text: "Renal amyloidosis", isTrue: false }
+      ]},
+      { id: 21, type: 'mcq', topic: 'Rheumatology', stem: "Regarding Kawasaki disease (pathology):", options: [
+        { id: 'A', text: "Coronary artery abnormality is developed in 20% to 25% of untreated children", isTrue: true },
+        { id: 'B', text: "Etiology is unknown", isTrue: true },
+        { id: 'C', text: "Highest incidence is observed in Asian children", isTrue: true },
+        { id: 'D', text: "Is a vasculitis commonly involving coronary vessels", isTrue: true },
+        { id: 'E', text: "Is a large vessel vasculitis", isTrue: false }
+      ], explanation: "Kawasaki is a medium vessel vasculitis." },
+      { id: 22, type: 'mcq', topic: 'Rheumatology', stem: "Small vessel vasculitides are:", options: [
+        { id: 'A', text: "Polyarteritis nodosa", isTrue: false },
+        { id: 'B', text: "Henoch-Schönlein purpura", isTrue: true },
+        { id: 'C', text: "Kawasaki disease", isTrue: false },
+        { id: 'D', text: "Takayasu arteritis", isTrue: false },
+        { id: 'E', text: "Wegener granulomatosis", isTrue: true }
+      ]},
+      { id: 23, type: 'mcq', topic: 'Rheumatology', stem: "Diagnostic criteria for systemic lupus erythematosus:", options: [
+        { id: 'A', text: "Malar rash", isTrue: true },
+        { id: 'B', text: "Oral ulcer", isTrue: true },
+        { id: 'C', text: "Fever", isTrue: false },
+        { id: 'D', text: "Hepatomegaly", isTrue: false },
+        { id: 'E', text: "Photosensitivity", isTrue: true }
+      ]},
+      { id: 24, type: 'mcq', topic: 'Rheumatology', stem: "Acute rheumatic fever:", options: [
+        { id: 'A', text: "Is a post-infectious immune response to Group A beta-hemolytic streptococcus infection", isTrue: true },
+        { id: 'B', text: "Age ranges 15 to 20 years", isTrue: false },
+        { id: 'C', text: "Aschoff nodules are the hallmark of rheumatic fever", isTrue: true },
+        { id: 'D', text: "Elevated anti-streptococcal antibody titer is the hallmark", isTrue: false },
+        { id: 'E', text: "Erythema marginatum is a major criterion", isTrue: true }
+      ]},
+      { id: 25, type: 'mcq', topic: 'Rheumatology', stem: "Rheumatic fever (epidemiology):", options: [
+        { id: 'A', text: "Is an acquired disease", isTrue: true },
+        { id: 'B', text: "Usually occurs at 5 to 15 years of age", isTrue: true },
+        { id: 'C', text: "Mainly involves pulmonary valve", isTrue: false },
+        { id: 'D', text: "May need lifelong prophylaxis", isTrue: true },
+        { id: 'E', text: "Can be subclinical", isTrue: true }
+      ], explanation: "Mitral valve is primarily involved, not pulmonary." },
+      { id: 26, type: 'mcq', topic: 'Endocrinology', stem: "Laboratory findings of primary hyperparathyroidism are:", options: [
+        { id: 'A', text: "Hypercalcemia", isTrue: true },
+        { id: 'B', text: "Hyperphosphatemia", isTrue: false },
+        { id: 'C', text: "Increased serum parathyroid hormone", isTrue: true },
+        { id: 'D', text: "Decreased urinary phosphate", isTrue: false },
+        { id: 'E', text: "Increased serum alkaline phosphatase if bone involvement is present", isTrue: true }
+      ]},
+      { id: 27, type: 'mcq', topic: 'Endocrinology', stem: "A 4-week-old baby is brought because of persistent yellow face, sclera, and constipation. Relevant investigations:", options: [
+        { id: 'A', text: "X-ray knee joint", isTrue: true },
+        { id: 'B', text: "X-ray wrist joint", isTrue: false },
+        { id: 'C', text: "Serum TSH estimation", isTrue: true },
+        { id: 'D', text: "Karyotyping", isTrue: false },
+        { id: 'E', text: "Serum growth hormone estimation", isTrue: false }
+      ]},
+      { id: 28, type: 'mcq', topic: 'Endocrinology', stem: "Clinical features of growth hormone deficiency are:", options: [
+        { id: 'A', text: "Doll-like face", isTrue: true },
+        { id: 'B', text: "Coarse facies", isTrue: true },
+        { id: 'C', text: "Micropenis", isTrue: true },
+        { id: 'D', text: "Hypothyroidism", isTrue: true },
+        { id: 'E', text: "Hirsutism", isTrue: false }
+      ]},
+      { id: 29, type: 'mcq', topic: 'Endocrinology', stem: "Causes of delayed puberty in females:", options: [
+        { id: 'A', text: "Congenital adrenal hyperplasia", isTrue: false },
+        { id: 'B', text: "Granulosa cell tumor", isTrue: false },
+        { id: 'C', text: "Imperforate hymen", isTrue: true },
+        { id: 'D', text: "Kallmann syndrome", isTrue: true },
+        { id: 'E', text: "Turner syndrome", isTrue: true }
+      ]},
+      { id: 30, type: 'mcq', topic: 'Endocrinology', stem: "Findings of head and face in congenital hypothyroidism:", options: [
+        { id: 'A', text: "Wrinkled forehead with low hairline", isTrue: true },
+        { id: 'B', text: "Swollen eyelids with narrow palpebral fissures", isTrue: true },
+        { id: 'C', text: "Prominent nasal bridge", isTrue: false },
+        { id: 'D', text: "Large open fontanelle", isTrue: true },
+        { id: 'E', text: "Delayed dentition", isTrue: false }
+      ]},
+      { id: 31, type: 'mcq', topic: 'Emergency & General', stem: "First-line management of snakebite in the community includes:", options: [
+        { id: 'A', text: "Assurance", isTrue: true },
+        { id: 'B', text: "Antivenom", isTrue: false },
+        { id: 'C', text: "Tight tourniquet", isTrue: false },
+        { id: 'D', text: "Quick referral to hospital", isTrue: true },
+        { id: 'E', text: "Immobilization of affected limb", isTrue: true }
+      ]},
+      { id: 32, type: 'mcq', topic: 'Emergency & General', stem: "Cardinal features of OPC poisoning include:", options: [
+        { id: 'A', text: "Miosis", isTrue: true },
+        { id: 'B', text: "Fasciculation", isTrue: true },
+        { id: 'C', text: "Bronchospasm", isTrue: true },
+        { id: 'D', text: "Diarrhea", isTrue: true },
+        { id: 'E', text: "Dry mouth", isTrue: false }
+      ]},
+      { id: 33, type: 'mcq', topic: 'Neurology', stem: "Characteristic features of neuropathy are:", options: [
+        { id: 'A', text: "Weakness of proximal muscles", isTrue: false },
+        { id: 'B', text: "Sensory loss", isTrue: true },
+        { id: 'C', text: "Presence of muscle fasciculation", isTrue: true },
+        { id: 'D', text: "Loss of tendon reflex", isTrue: true },
+        { id: 'E', text: "No bulbar involvement", isTrue: false }
+      ]},
+      { id: 34, type: 'mcq', topic: 'Neurology', stem: "Red flag signs of autism:", options: [
+        { id: 'A', text: "No big smile by 6 months of age", isTrue: true },
+        { id: 'B', text: "No babbling by 12 months of age", isTrue: true },
+        { id: 'C', text: "No meaningful words by 16 months of age", isTrue: false },
+        { id: 'D', text: "No response to name by 6 months of age", isTrue: false },
+        { id: 'E', text: "No smile by 9 months of age", isTrue: true }
+      ]},
+      { id: 35, type: 'mcq', topic: 'Neurology', stem: "Drugs found useful in the management of cerebral palsy:", options: [
+        { id: 'A', text: "Baclofen", isTrue: true },
+        { id: 'B', text: "Diazepam", isTrue: true },
+        { id: 'C', text: "Botulinum toxin", isTrue: true },
+        { id: 'D', text: "Multivitamin", isTrue: false },
+        { id: 'E', text: "Amoxicillin", isTrue: false }
+      ]},
+
+      // 5 SBAs
+      { id: 36, type: 'sba', topic: 'Neurology', stem: "A 12-year-old girl presented with paralysis of both lower limbs with loss of sensation up to a definite upper level. She also complained of urinary retention and no spontaneous bowel movement. What may be the probable diagnosis?", options: [
+        { id: 'A', text: "GBS" },
+        { id: 'B', text: "Transverse myelitis" },
+        { id: 'C', text: "Poliomyelitis" },
+        { id: 'D', text: "Intracranial hemorrhage" },
+        { id: 'E', text: "Spinal nerve lesion" }
+      ], correctOption: 'B', explanation: "Transverse myelitis causes acute paraparesis with a definite sensory level and early urinary retention." },
+      { id: 37, type: 'sba', topic: 'Neurology', stem: "A young child presented with symmetrical weakness of both lower limbs then gradually involvement of trunk and upper limbs occurred. He had a history of diarrhea two weeks before. What is the most probable diagnosis?", options: [
+        { id: 'A', text: "Acute poliomyelitis" },
+        { id: 'B', text: "Guillain-Barre syndrome" },
+        { id: 'C', text: "Duchenne muscular dystrophy" },
+        { id: 'D', text: "Juvenile dermatomyositis" },
+        { id: 'E', text: "Henoch-Schönlein purpura" }
+      ], correctOption: 'B', explanation: "Ascending symmetrical weakness with post-diarrheal history is classic Guillain-Barré Syndrome." },
+      { id: 38, type: 'sba', topic: 'Endocrinology', stem: "A 16-year-old girl came with complaints of absence of signs of secondary sexual development. Which of the following is not a cause of this condition?", options: [
+        { id: 'A', text: "Panhypopituitarism" },
+        { id: 'B', text: "Turner syndrome" },
+        { id: 'C', text: "Noonan syndrome" },
+        { id: 'D', text: "Congenital adrenal hyperplasia" },
+        { id: 'E', text: "Gonadal dysgenesis" }
+      ], correctOption: 'D', explanation: "Congenital adrenal hyperplasia leads to virilization / precocious pseudopuberty, not delayed development." },
+      { id: 39, type: 'sba', topic: 'Endocrinology', stem: "A 13-year-old boy came with the problem of short stature. His bone age corresponds to chronological age. What may be the cause?", options: [
+        { id: 'A', text: "Constitutional short stature" },
+        { id: 'B', text: "Familial short stature" },
+        { id: 'C', text: "Hypothyroidism" },
+        { id: 'D', text: "Noonan syndrome" },
+        { id: 'E', text: "Growth hormone deficiency" }
+      ], correctOption: 'B', explanation: "In familial short stature, bone age is normal and equals chronological age." },
+      { id: 40, type: 'sba', topic: 'Rheumatology', stem: "Which disease has antibodies against DNA present?", options: [
+        { id: 'A', text: "RF" },
+        { id: 'B', text: "RA" },
+        { id: 'C', text: "SLE" },
+        { id: 'D', text: "JIA" },
+        { id: 'E', text: "Myasthenia gravis" }
+      ], correctOption: 'C', explanation: "Anti-dsDNA antibodies are pathognomonic for Systemic Lupus Erythematosus (SLE)." }
+    ];
+
+    // Local Storage keys
+    const USER_KEY = 'cpr_user_name';
+    const LEADERBOARD_KEY = 'cpr_calc_leaderboard';
+
+    let currentTab = 'quiz';
+    let currentIdx = 0;
+    let userAnswers = {};
+    let examMode = 'exam'; // 'exam' or 'practice'
+
+    let candidateName = localStorage.getItem(USER_KEY) || 'Dr. Candidate';
+
+    // Exact Grading Engine
+    function calculateExactResult() {
+      let mcqCorrect = 0;
+      let mcqWrong = 0;
+      let sbaCorrect = 0;
+      let sbaWrong = 0;
+
+      QUESTIONS.forEach(q => {
+        const ans = userAnswers[q.id];
+        if (q.type === 'mcq') {
+          q.options.forEach(opt => {
+            const userChoice = ans && ans[opt.id];
+            if (userChoice !== undefined) {
+              if (userChoice === opt.isTrue) mcqCorrect++;
+              else mcqWrong++;
+            }
+          });
+        } else if (q.type === 'sba') {
+          if (ans !== undefined) {
+            if (ans === q.correctOption) sbaCorrect++;
+            else sbaWrong++;
+          }
+        }
+      });
+
+      // Step 1: MCQ (True/False) Calculation: Total Correct MCQs minus Wrong MCQs. Then multiply the result by 0.2.
+      const mcqIntermediate = Number(((mcqCorrect - mcqWrong) * 0.2).toFixed(2));
+      // Step 2: Adding SBA Score: Add the correct SBA score to intermediate result.
+      const withSBA = Number((mcqIntermediate + sbaCorrect).toFixed(2));
+      // Step 3: Negative Marking Deduction: Subtract (Wrong MCQ count * 0.05) from the total.
+      const negativeDeduction = Number((mcqWrong * 0.05).toFixed(2));
+      // Final Result:
+      const finalScore = Number((withSBA - negativeDeduction).toFixed(2));
+      const percentage = Number(Math.max(0, (finalScore / 40.0) * 100).toFixed(1));
+
+      return {
+        mcqCorrect,
+        mcqWrong,
+        sbaCorrect,
+        sbaWrong,
+        mcqIntermediate,
+        negativeDeduction,
+        finalScore,
+        maxScore: 40.0,
+        percentage
+      };
+    }
+
+    function saveScoreToLeaderboard(res) {
+      const stored = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+      const newEntry = {
+        name: candidateName,
+        finalScore: res.finalScore,
+        percentage: res.percentage,
+        mcqCorrect: res.mcqCorrect,
+        mcqWrong: res.mcqWrong,
+        sbaCorrect: res.sbaCorrect,
+        date: new Date().toLocaleDateString()
+      };
+      stored.push(newEntry);
+      stored.sort((a,b) => b.finalScore - a.finalScore);
+      localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(stored));
+    }
+
+    // Render Logic
+    function render() {
+      const container = document.getElementById('mainContainer');
+      if (currentTab === 'quiz') {
+        const q = QUESTIONS[currentIdx];
+        container.innerHTML = `
+          <div class="space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200">
+              <div>
+                <span class="text-xs font-bold text-teal-800 uppercase">Question ${currentIdx + 1} of ${QUESTIONS.length}</span>
+                <h2 class="text-base sm:text-lg font-bold text-slate-900">${q.stem}</h2>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="toggleMode()" class="px-3 py-1.5 rounded-lg border text-xs font-bold ${examMode === 'practice' ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-slate-50 text-slate-700'}">
+                  ${examMode === 'practice' ? '★ Practice Mode' : '⏱ Exam Mode'}
+                </button>
+                <button onclick="submitQuiz()" class="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs">
+                  Submit & Grade
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-3">
+              ${q.type === 'mcq' ? q.options.map(opt => {
+                const choice = userAnswers[q.id] && userAnswers[q.id][opt.id];
+                return `
+                  <div class="flex items-center justify-between p-3 rounded-xl border ${choice !== undefined ? 'bg-teal-50/50 border-teal-300' : 'bg-slate-50 border-slate-200'}">
+                    <span class="text-sm font-medium"><strong class="font-mono mr-2">${opt.id}.</strong>${opt.text}</span>
+                    <div class="flex gap-2">
+                      <button onclick="chooseMCQ(${q.id}, '${opt.id}', true)" class="px-3 py-1 rounded-md text-xs font-bold ${choice === true ? 'bg-emerald-600 text-white' : 'bg-white border text-slate-700'}">True</button>
+                      <button onclick="chooseMCQ(${q.id}, '${opt.id}', false)" class="px-3 py-1 rounded-md text-xs font-bold ${choice === false ? 'bg-rose-600 text-white' : 'bg-white border text-slate-700'}">False</button>
+                    </div>
+                  </div>
+                `;
+              }).join('') : q.options.map(opt => {
+                const choice = userAnswers[q.id];
+                return `
+                  <button onclick="chooseSBA(${q.id}, '${opt.id}')" class="w-full text-left p-3.5 rounded-xl border flex items-center gap-3 ${choice === opt.id ? 'bg-teal-50 border-teal-500 font-bold' : 'bg-white border-slate-200'}">
+                    <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${choice === opt.id ? 'bg-teal-600 text-white' : 'bg-slate-100'}">${opt.id}</span>
+                    <span class="text-sm">${opt.text}</span>
+                  </button>
+                `;
+              }).join('')}
+
+              ${examMode === 'practice' && q.explanation ? `
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 mt-4">
+                  <strong>Clinical Note:</strong> ${q.explanation}
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="flex justify-between items-center">
+              <button onclick="prevQ()" ${currentIdx === 0 ? 'disabled' : ''} class="px-4 py-2 border rounded-xl text-xs font-semibold disabled:opacity-40">Previous</button>
+              <span class="text-xs font-mono text-slate-500">${currentIdx + 1} / ${QUESTIONS.length}</span>
+              <button onclick="nextQ()" ${currentIdx === QUESTIONS.length - 1 ? 'disabled' : ''} class="px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-bold disabled:opacity-40">Next Question</button>
+            </div>
+          </div>
+        `;
+      } else if (currentTab === 'dashboard') {
+        const lastResult = calculateExactResult();
+        container.innerHTML = `
+          <div class="space-y-6 max-w-3xl mx-auto">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
+              <h2 class="text-xl font-bold text-slate-900">Candidate Dashboard & Entry</h2>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">CANDIDATE NAME / ID</label>
+                <div class="flex gap-2">
+                  <input id="candNameInput" type="text" value="${candidateName}" class="flex-1 px-3 py-2 border rounded-xl text-sm font-semibold" />
+                  <button onclick="saveName()" class="px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-bold">Save</button>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3 pt-3">
+                <button onclick="startMode('exam')" class="p-4 bg-teal-50 border border-teal-200 rounded-xl text-left hover:border-teal-400">
+                  <span class="block font-bold text-sm text-teal-900">⏱ Exam Mode</span>
+                  <span class="text-xs text-teal-700">Official formula with timer</span>
+                </button>
+                <button onclick="startMode('practice')" class="p-4 bg-amber-50 border border-amber-200 rounded-xl text-left hover:border-amber-400">
+                  <span class="block font-bold text-sm text-amber-900">★ Practice Mode</span>
+                  <span class="text-xs text-amber-700">Instant answer checking</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (currentTab === 'leaderboard') {
+        const list = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+        container.innerHTML = `
+          <div class="max-w-4xl mx-auto space-y-6">
+            <div class="flex justify-between items-center">
+              <h2 class="text-2xl font-bold text-slate-900">Official Merit Leaderboard</h2>
+              <button onclick="currentTab='quiz'; render();" class="px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-bold">Take Test</button>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 border-b text-xs font-bold text-slate-500 uppercase">
+                  <tr>
+                    <th class="p-3 text-center">Rank</th>
+                    <th class="p-3">Candidate</th>
+                    <th class="p-3 text-center">Final Score</th>
+                    <th class="p-3 text-center">MCQ (Correct/Wrong)</th>
+                    <th class="p-3 text-center">SBA</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y">
+                  ${list.length > 0 ? list.map((item, idx) => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-3 text-center font-bold font-mono">#${idx + 1}</td>
+                      <td class="p-3 font-semibold text-slate-900">${item.name}</td>
+                      <td class="p-3 text-center font-bold text-teal-800 font-mono">${item.finalScore.toFixed(2)} / 40.0</td>
+                      <td class="p-3 text-center font-mono text-xs">${item.mcqCorrect}✓ / ${item.mcqWrong}✗</td>
+                      <td class="p-3 text-center font-mono text-xs">${item.sbaCorrect}/5</td>
+                    </tr>
+                  `).join('') : '<tr><td colspan="5" class="p-6 text-center text-slate-500">No submissions recorded yet. Complete an exam to view leaderboard!</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    window.chooseMCQ = (qId, stemId, val) => {
+      userAnswers[qId] = userAnswers[qId] || {};
+      userAnswers[qId][stemId] = val;
+      render();
+    };
+
+    window.chooseSBA = (qId, optId) => {
+      userAnswers[qId] = optId;
+      render();
+    };
+
+    window.prevQ = () => { if (currentIdx > 0) { currentIdx--; render(); } };
+    window.nextQ = () => { if (currentIdx < QUESTIONS.length - 1) { currentIdx++; render(); } };
+    window.toggleMode = () => { examMode = examMode === 'exam' ? 'practice' : 'exam'; render(); };
+    window.startMode = (m) => { examMode = m; currentTab = 'quiz'; currentIdx = 0; render(); };
+    window.saveName = () => {
+      const val = document.getElementById('candNameInput').value.trim();
+      if (val) { candidateName = val; localStorage.setItem(USER_KEY, val); alert('Name saved!'); render(); }
+    };
+
+    window.submitQuiz = () => {
+      const res = calculateExactResult();
+      saveScoreToLeaderboard(res);
+
+      const shareText = `🎯 I scored ${res.finalScore.toFixed(2)}/40.0 (${res.percentage}%) in CPR Medical Academy Residency MD Paediatrics Exam! Formula: [(Correct-Wrong)*0.2] + SBA - (Wrong*0.05).`;
+      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+      const twUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+      const fbUrl = `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(shareText)}`;
+
+      const modal = document.createElement('div');
+      modal.className = "fixed inset-0 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 z-50";
+      modal.innerHTML = `
+        <div class="bg-white rounded-3xl p-6 max-w-lg w-full space-y-5 shadow-2xl animate-in fade-in">
+          <div class="text-center space-y-1">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-teal-700">RESIDENCY MD PAEDIATRICS RESULT</h3>
+            <h2 class="text-3xl font-black text-slate-900 font-mono">${res.finalScore.toFixed(2)} / 40.0 Marks</h2>
+            <p class="text-xs text-slate-500 font-medium">${candidateName} · Accuracy: ${res.percentage}%</p>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-2xl border text-xs font-mono space-y-2">
+            <div class="font-bold text-slate-800 text-[11px] uppercase tracking-wider pb-1 border-b">Exact Formula Calculation:</div>
+            <div class="flex justify-between"><span>1. MCQ Score [(${res.mcqCorrect}-${res.mcqWrong})×0.2]:</span><strong class="text-teal-800">${res.mcqIntermediate.toFixed(2)}</strong></div>
+            <div class="flex justify-between"><span>2. SBA Score (+${res.sbaCorrect} of 5):</span><strong class="text-emerald-700">+${res.sbaCorrect.toFixed(2)}</strong></div>
+            <div class="flex justify-between"><span>3. Negative Marking [${res.mcqWrong}×0.05]:</span><strong class="text-rose-600">-${res.negativeDeduction.toFixed(2)}</strong></div>
+            <div class="flex justify-between pt-1 border-t text-sm font-bold"><span>Final Result:</span><span class="text-teal-900">${res.finalScore.toFixed(2)} / 40.0</span></div>
+          </div>
+
+          <div class="space-y-2">
+            <span class="text-xs font-bold uppercase text-slate-500 block">One-Click Social Sharing:</span>
+            <div class="grid grid-cols-3 gap-2">
+              <a href="${waUrl}" target="_blank" class="py-2 px-3 rounded-xl bg-emerald-100 text-emerald-800 text-center font-bold text-xs">WhatsApp</a>
+              <a href="${fbUrl}" target="_blank" class="py-2 px-3 rounded-xl bg-blue-100 text-blue-800 text-center font-bold text-xs">Facebook</a>
+              <a href="${twUrl}" target="_blank" class="py-2 px-3 rounded-xl bg-slate-900 text-white text-center font-bold text-xs">X / Twitter</a>
+            </div>
+            <button onclick="navigator.clipboard.writeText('${shareText}'); alert('Result copied to clipboard!');" class="w-full py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-semibold text-slate-800">
+              Copy Result Text to Clipboard
+            </button>
+          </div>
+
+          <button onclick="this.closest('.fixed').remove(); currentTab='leaderboard'; render();" class="w-full py-2.5 bg-teal-600 text-white rounded-xl font-bold text-xs shadow-sm">
+            View Leaderboard & Standings
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    };
+
+    document.getElementById('navQuizBtn').onclick = () => { currentTab = 'quiz'; render(); };
+    document.getElementById('navDashBtn').onclick = () => { currentTab = 'dashboard'; render(); };
+    document.getElementById('navLeadBtn').onclick = () => { currentTab = 'leaderboard'; render(); };
+
+    render();
+  </script>
+</body>
+</html>
