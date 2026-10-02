@@ -1,4 +1,4 @@
-import { ExamResult, LeaderboardEntry } from '../types/quiz';
+import { ExamResult, LeaderboardEntry, Topic } from '../types/quiz';
 
 const USER_PROFILE_KEY = 'cpr_quiz_user_profile';
 const EXAM_HISTORY_KEY = 'cpr_quiz_exam_history';
@@ -18,17 +18,20 @@ const DEFAULT_PROFILE: UserProfile = {
 };
 
 // Seed leaderboard calculated strictly with the CPR Residency Formula:
-// Formula: (MCQ Correct - MCQ Wrong) * 0.2 + SBA Correct - (MCQ Wrong * 0.05)
-// Max marks: 40.0 (35.0 MCQ + 5.0 SBA)
+// 1. 175 - ভুল MCQ
+// 2. ফলাফল × 0.2
+// 3. ফলাফল + সঠিক SBA
+// 4. ফলাফল - (ভুল MCQ × 0.05)
+// 5. ফলাফল = সর্বশেষ রেজাল্ট (Max marks: 40.0)
 const SEED_LEADERBOARD: LeaderboardEntry[] = [
   {
     id: 'seed-1',
     name: 'Dr. Nusrat Jahan',
     institute: 'Dhaka Medical College',
-    finalScore: 37.15, // 168 correct, 4 wrong (164*0.2 = 32.8) + 5 SBA - (4*0.05 = 0.20) = 37.60
+    finalScore: 38.75,
     maxScore: 40.0,
-    percentage: 92.9,
-    mcqCorrect: 167,
+    percentage: 96.9,
+    mcqCorrect: 170,
     mcqWrong: 5,
     sbaCorrect: 5,
     timeTaken: '28m 42s',
@@ -39,10 +42,10 @@ const SEED_LEADERBOARD: LeaderboardEntry[] = [
     id: 'seed-2',
     name: 'Dr. Tanvir Rahman',
     institute: 'Sir Salimullah Medical College',
-    finalScore: 35.40,
+    finalScore: 37.75,
     maxScore: 40.0,
-    percentage: 88.5,
-    mcqCorrect: 161,
+    percentage: 94.4,
+    mcqCorrect: 166,
     mcqWrong: 9,
     sbaCorrect: 5,
     timeTaken: '31m 15s',
@@ -53,11 +56,11 @@ const SEED_LEADERBOARD: LeaderboardEntry[] = [
     id: 'seed-3',
     name: 'Dr. Farhana Akter',
     institute: 'Chittagong Medical College',
-    finalScore: 34.05,
+    finalScore: 36.00,
     maxScore: 40.0,
-    percentage: 85.1,
-    mcqCorrect: 156,
-    mcqWrong: 11,
+    percentage: 90.0,
+    mcqCorrect: 163,
+    mcqWrong: 12,
     sbaCorrect: 4,
     timeTaken: '34m 02s',
     date: 'Yesterday',
@@ -67,10 +70,10 @@ const SEED_LEADERBOARD: LeaderboardEntry[] = [
     id: 'seed-4',
     name: 'Dr. Mahmudul Hasan',
     institute: 'Mymensingh Medical College',
-    finalScore: 32.10,
+    finalScore: 35.00,
     maxScore: 40.0,
-    percentage: 80.3,
-    mcqCorrect: 150,
+    percentage: 87.5,
+    mcqCorrect: 159,
     mcqWrong: 16,
     sbaCorrect: 4,
     timeTaken: '32m 45s',
@@ -81,11 +84,11 @@ const SEED_LEADERBOARD: LeaderboardEntry[] = [
     id: 'seed-5',
     name: 'Dr. Sabrina Yesmin',
     institute: 'CPR Medical Academy',
-    finalScore: 30.50,
+    finalScore: 34.00,
     maxScore: 40.0,
-    percentage: 76.3,
-    mcqCorrect: 145,
-    mcqWrong: 18,
+    percentage: 85.0,
+    mcqCorrect: 155,
+    mcqWrong: 20,
     sbaCorrect: 4,
     timeTaken: '36m 10s',
     date: '2 days ago',
@@ -95,12 +98,12 @@ const SEED_LEADERBOARD: LeaderboardEntry[] = [
     id: 'seed-6',
     name: 'Dr. Shahriar Kabir',
     institute: 'Rajshahi Medical College',
-    finalScore: 28.65,
+    finalScore: 31.50,
     maxScore: 40.0,
-    percentage: 71.6,
-    mcqCorrect: 140,
-    mcqWrong: 22,
-    sbaCorrect: 4,
+    percentage: 78.8,
+    mcqCorrect: 149,
+    mcqWrong: 26,
+    sbaCorrect: 3,
     timeTaken: '38m 20s',
     date: '2 days ago',
     badge: 'Passed',
@@ -109,11 +112,11 @@ const SEED_LEADERBOARD: LeaderboardEntry[] = [
     id: 'seed-7',
     name: 'Dr. Ananya Roy',
     institute: 'Sylhet MAG Osmani Medical College',
-    finalScore: 26.25,
+    finalScore: 30.00,
     maxScore: 40.0,
-    percentage: 65.6,
-    mcqCorrect: 133,
-    mcqWrong: 27,
+    percentage: 75.0,
+    mcqCorrect: 143,
+    mcqWrong: 32,
     sbaCorrect: 3,
     timeTaken: '40m 18s',
     date: '3 days ago',
@@ -123,12 +126,12 @@ const SEED_LEADERBOARD: LeaderboardEntry[] = [
     id: 'seed-8',
     name: 'Dr. Imtiaz Ahmed',
     institute: 'Rangpur Medical College',
-    finalScore: 24.80,
+    finalScore: 27.00,
     maxScore: 40.0,
-    percentage: 62.0,
-    mcqCorrect: 129,
-    mcqWrong: 30,
-    sbaCorrect: 3,
+    percentage: 67.5,
+    mcqCorrect: 135,
+    mcqWrong: 40,
+    sbaCorrect: 2,
     timeTaken: '41m 55s',
     date: '3 days ago',
     badge: 'Passed',
@@ -139,7 +142,13 @@ export const getStoredUserProfile = (): UserProfile => {
   try {
     const raw = localStorage.getItem(USER_PROFILE_KEY);
     if (!raw) return DEFAULT_PROFILE;
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return {
+      name: parsed.name || DEFAULT_PROFILE.name,
+      institute: parsed.institute || DEFAULT_PROFILE.institute,
+      candidateId: parsed.candidateId || DEFAULT_PROFILE.candidateId,
+      avatarSeed: parsed.avatarSeed,
+    };
   } catch {
     return DEFAULT_PROFILE;
   }
@@ -157,7 +166,88 @@ export const getStoredExamHistory = (): ExamResult[] => {
   try {
     const raw = localStorage.getItem(EXAM_HISTORY_KEY);
     if (!raw) return [];
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.map((res: any, idx: number): ExamResult => {
+      // Reconstruct formula safely
+      const rawMcqWrong = Number(res.formula?.mcqWrong ?? res.mcqWrong ?? 12) || 0;
+      const rawMcqCorrect = Number(res.formula?.mcqCorrect ?? (175 - rawMcqWrong)) || 0;
+      const rawSbaCorrect = Number(res.formula?.sbaCorrect ?? res.sbaCorrect ?? 4) || 0;
+      const rawSbaWrong = Number(res.formula?.sbaWrong ?? (5 - rawSbaCorrect)) || 0;
+
+      const step1Result = Number(res.formula?.step1Result ?? (175 - rawMcqWrong)) || 0;
+      const step2Result = Number(res.formula?.step2Result ?? (step1Result * 0.2)) || 0;
+      const step3Result = Number(res.formula?.step3Result ?? (step2Result + rawSbaCorrect)) || 0;
+      const negativeDeduction = Number(res.formula?.negativeDeduction ?? (rawMcqWrong * 0.05)) || 0;
+      const computedFinal = Number((step3Result - negativeDeduction).toFixed(2));
+
+      const finalScore = Number(res.formula?.finalScore ?? res.scoreMarks ?? computedFinal) || 0;
+      const maxMarks = 40.0;
+      const percentage = Number(res.percentage ?? ((finalScore / maxMarks) * 100)) || 0;
+
+      const formula = {
+        totalMCQStems: 175,
+        mcqWrong: rawMcqWrong,
+        step1Result,
+        step2Result: Number(step2Result.toFixed(2)),
+        sbaCorrect: rawSbaCorrect,
+        step3Result: Number(step3Result.toFixed(2)),
+        negativeDeduction: Number(negativeDeduction.toFixed(2)),
+        finalScore: Number(finalScore.toFixed(2)),
+        maxMarks: 40.0,
+        mcqCorrect: rawMcqCorrect,
+        mcqUnattempted: Number(res.formula?.mcqUnattempted ?? 0) || 0,
+        sbaWrong: rawSbaWrong,
+        sbaUnattempted: Number(res.formula?.sbaUnattempted ?? 0) || 0,
+        mcqIntermediateScore: Number(step2Result.toFixed(2)),
+      };
+
+      const defaultTopic = { correct: 0, wrong: 0, total: 0, percentage: 0 };
+      const safeBreakdown: Record<Topic, { correct: number; wrong: number; total: number; percentage: number }> = {
+        Neurology: {
+          correct: Number(res.topicBreakdown?.Neurology?.correct ?? 0) || 0,
+          wrong: Number(res.topicBreakdown?.Neurology?.wrong ?? 0) || 0,
+          total: Number(res.topicBreakdown?.Neurology?.total ?? 0) || 0,
+          percentage: Number(res.topicBreakdown?.Neurology?.percentage ?? 0) || 0,
+        },
+        Endocrinology: {
+          correct: Number(res.topicBreakdown?.Endocrinology?.correct ?? 0) || 0,
+          wrong: Number(res.topicBreakdown?.Endocrinology?.wrong ?? 0) || 0,
+          total: Number(res.topicBreakdown?.Endocrinology?.total ?? 0) || 0,
+          percentage: Number(res.topicBreakdown?.Endocrinology?.percentage ?? 0) || 0,
+        },
+        Rheumatology: {
+          correct: Number(res.topicBreakdown?.Rheumatology?.correct ?? 0) || 0,
+          wrong: Number(res.topicBreakdown?.Rheumatology?.wrong ?? 0) || 0,
+          total: Number(res.topicBreakdown?.Rheumatology?.total ?? 0) || 0,
+          percentage: Number(res.topicBreakdown?.Rheumatology?.percentage ?? 0) || 0,
+        },
+        'Emergency & General': {
+          correct: Number(res.topicBreakdown?.['Emergency & General']?.correct ?? 0) || 0,
+          wrong: Number(res.topicBreakdown?.['Emergency & General']?.wrong ?? 0) || 0,
+          total: Number(res.topicBreakdown?.['Emergency & General']?.total ?? 0) || 0,
+          percentage: Number(res.topicBreakdown?.['Emergency & General']?.percentage ?? 0) || 0,
+        },
+      };
+
+      return {
+        id: res.id || `exam-${idx}`,
+        userName: res.userName || 'Dr. Candidate',
+        userInstitute: res.userInstitute || 'CPR Medical Academy',
+        date: res.date || 'Recent',
+        timestamp: Number(res.timestamp) || Date.now(),
+        examMode: res.examMode === 'practice' ? 'practice' : 'exam',
+        formula,
+        scoreMarks: finalScore,
+        totalMarks: 40.0,
+        percentage: Number(percentage.toFixed(1)),
+        timeSpentSeconds: Number(res.timeSpentSeconds) || 1200,
+        topicBreakdown: safeBreakdown,
+        passed: typeof res.passed === 'boolean' ? res.passed : finalScore >= 24.0,
+        userAnswers: res.userAnswers,
+      };
+    });
   } catch {
     return [];
   }
@@ -171,7 +261,43 @@ export const getStoredLeaderboard = (): LeaderboardEntry[] => {
       return SEED_LEADERBOARD;
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : SEED_LEADERBOARD;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      // Normalize any older or legacy items to ensure finalScore and all fields are valid numbers
+      const normalized: LeaderboardEntry[] = parsed.map((item: any, idx: number) => {
+        const finalScore = Number(
+          typeof item.finalScore === 'number'
+            ? item.finalScore
+            : typeof item.score === 'number' && typeof item.total === 'number' && item.total > 0
+            ? (item.score / item.total) * 40
+            : 30.0
+        ) || 0;
+
+        const maxScore = 40.0;
+        const percentage = Number(
+          typeof item.percentage === 'number' ? item.percentage : (finalScore / maxScore) * 100
+        ) || 0;
+
+        return {
+          id: item.id || `entry-${idx}`,
+          name: item.name || 'Dr. Candidate',
+          institute: item.institute || 'CPR Medical Academy',
+          finalScore: Number(finalScore.toFixed(2)),
+          maxScore: 40.0,
+          percentage: Number(percentage.toFixed(1)),
+          mcqCorrect: Number(item.mcqCorrect ?? 150) || 0,
+          mcqWrong: Number(item.mcqWrong ?? 15) || 0,
+          sbaCorrect: Number(item.sbaCorrect ?? 4) || 0,
+          timeTaken: item.timeTaken || '35m 00s',
+          date: item.date || 'Recent',
+          isCurrentUser: Boolean(item.isCurrentUser),
+          badge: item.badge || (finalScore >= 24.0 ? 'Passed' : 'Needs Revision'),
+        };
+      });
+
+      normalized.sort((a, b) => b.finalScore - a.finalScore);
+      return normalized;
+    }
+    return SEED_LEADERBOARD;
   } catch {
     return SEED_LEADERBOARD;
   }
@@ -192,25 +318,28 @@ export const saveExamResult = (result: ExamResult): void => {
     const leaderboard = getStoredLeaderboard();
     const existingIndex = leaderboard.findIndex((item) => item.isCurrentUser);
 
-    const minutes = Math.floor(result.timeSpentSeconds / 60);
-    const seconds = result.timeSpentSeconds % 60;
+    const minutes = Math.floor((result.timeSpentSeconds || 0) / 60);
+    const seconds = (result.timeSpentSeconds || 0) % 60;
     const timeFormatted = `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
 
     let badge = 'Passed';
-    if (result.percentage >= 85) badge = 'Honours with Distinction';
-    else if (result.percentage >= 70) badge = 'Honours';
-    else if (result.percentage < 60) badge = 'Needs Revision';
+    const finalScore = Number(result.formula?.finalScore ?? result.scoreMarks ?? 0) || 0;
+    const percentage = Number(result.percentage ?? ((finalScore / 40.0) * 100)) || 0;
+
+    if (percentage >= 85) badge = 'Honours with Distinction';
+    else if (percentage >= 70) badge = 'Honours';
+    else if (percentage < 60) badge = 'Needs Revision';
 
     const newEntry: LeaderboardEntry = {
       id: result.id,
-      name: result.userName,
-      institute: result.userInstitute,
-      finalScore: result.formula.finalScore,
-      maxScore: result.formula.maxMarks,
-      percentage: result.percentage,
-      mcqCorrect: result.formula.mcqCorrect,
-      mcqWrong: result.formula.mcqWrong,
-      sbaCorrect: result.formula.sbaCorrect,
+      name: result.userName || 'Dr. Candidate',
+      institute: result.userInstitute || 'CPR Medical Academy',
+      finalScore: Number(finalScore.toFixed(2)),
+      maxScore: 40.0,
+      percentage: Number(percentage.toFixed(1)),
+      mcqCorrect: Number(result.formula?.mcqCorrect ?? 0) || 0,
+      mcqWrong: Number(result.formula?.mcqWrong ?? 0) || 0,
+      sbaCorrect: Number(result.formula?.sbaCorrect ?? 0) || 0,
       timeTaken: timeFormatted,
       date: 'Just now',
       isCurrentUser: true,
@@ -218,15 +347,13 @@ export const saveExamResult = (result: ExamResult): void => {
     };
 
     if (existingIndex >= 0) {
-      // keep the higher score
-      if (result.formula.finalScore >= leaderboard[existingIndex].finalScore) {
+      if (newEntry.finalScore >= leaderboard[existingIndex].finalScore) {
         leaderboard[existingIndex] = newEntry;
       }
     } else {
       leaderboard.push(newEntry);
     }
 
-    // Sort descending by finalScore, then ascending by time
     leaderboard.sort((a, b) => {
       if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
       return b.percentage - a.percentage;

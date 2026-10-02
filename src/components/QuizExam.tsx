@@ -49,10 +49,18 @@ export const QuizExam: React.FC<QuizExamProps> = ({
   const [selectedTopic, setSelectedTopic] = useState<'All' | Topic>('All');
   const [selectedType, setSelectedType] = useState<'all' | 'mcq' | 'sba'>('all');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
+  const [userAnswers, setUserAnswers] = useState<UserAnswers>(() => {
+    return reviewExamResult?.userAnswers || {};
+  });
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
   const [examMode, setExamMode] = useState<'exam' | 'practice'>(initialMode);
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    if (reviewExamResult?.userAnswers) {
+      setUserAnswers(reviewExamResult.userAnswers);
+    }
+  }, [reviewExamResult]);
 
   // Timer states
   const [timeRemaining, setTimeRemaining] = useState(EXAM_METADATA.defaultDurationMinutes * 60);
@@ -208,27 +216,40 @@ export const QuizExam: React.FC<QuizExamProps> = ({
       }
     });
 
-    // Step 1: MCQ (True/False) Calculation: Total Correct MCQs minus Wrong MCQs. Then multiply by 0.2.
-    const mcqIntermediateScore = Number(((mcqCorrect - mcqWrong) * 0.2).toFixed(2));
+    // Exact 5-Step Formula requested:
+    // 1. 175 - ভুল MCQ (True/False)
+    const totalMCQStems = 175;
+    const step1Result = Math.max(0, totalMCQStems - (mcqWrong + mcqUnattempted));
 
-    // Step 2 & 3: Adding SBA Score & Negative Marking Deduction
+    // 2. প্রাপ্ত ফলাফল × 0.2
+    const step2Result = Number((step1Result * 0.2).toFixed(2));
+
+    // 3. প্রাপ্ত ফলাফল + সঠিক SBA
+    const step3Result = Number((step2Result + sbaCorrect).toFixed(2));
+
+    // 4. প্রাপ্ত ফলাফল - (ভুল MCQ (True/False) সংখ্যা × 0.05)
     const negativeDeduction = Number((mcqWrong * 0.05).toFixed(2));
-    const rawFinalScore = mcqIntermediateScore + sbaCorrect - negativeDeduction;
-    const finalScore = Number(rawFinalScore.toFixed(2));
-    const maxMarks = 40.0; // 35 MCQ marks (175 stems * 0.2) + 5 SBA marks
+    const finalScore = Number(Math.max(0, step3Result - negativeDeduction).toFixed(2));
+
+    // 5. প্রাপ্ত ফলাফলই সর্বশেষ রেজাল্ট (Max marks: 40.0)
+    const maxMarks = 40.0;
     const percentage = Number(Math.max(0, (finalScore / maxMarks) * 100).toFixed(1));
 
     const formula: ExamFormulaBreakdown = {
-      mcqCorrect,
+      totalMCQStems,
       mcqWrong,
-      mcqUnattempted,
-      mcqIntermediateScore,
+      step1Result,
+      step2Result,
       sbaCorrect,
-      sbaWrong,
-      sbaUnattempted,
+      step3Result,
       negativeDeduction,
       finalScore,
       maxMarks,
+      mcqCorrect,
+      mcqUnattempted,
+      sbaWrong,
+      sbaUnattempted,
+      mcqIntermediateScore: step2Result,
     };
 
     const now = new Date();
@@ -254,6 +275,7 @@ export const QuizExam: React.FC<QuizExamProps> = ({
       timeSpentSeconds: timeSpent,
       topicBreakdown: topicStats,
       passed: finalScore >= 24.0, // 60% of 40 marks = 24.0 marks
+      userAnswers,
     };
   };
 
@@ -393,7 +415,7 @@ export const QuizExam: React.FC<QuizExamProps> = ({
           </span>
         </div>
         <div className="font-mono text-[11px] bg-teal-950/60 px-3 py-1.5 rounded-lg border border-teal-700/50 leading-relaxed text-teal-200">
-          Final Score = [(Correct MCQ - Wrong MCQ) × 0.2] + Correct SBA - (Wrong MCQ × 0.05)
+          [(175 - ভুল MCQ) × 0.2] + সঠিক SBA - (ভুল MCQ × 0.05) = চূড়ান্ত রেজাল্ট (সর্বোচ্চ ৪০.০)
         </div>
       </div>
 
@@ -861,7 +883,7 @@ export const QuizExam: React.FC<QuizExamProps> = ({
               <div className="flex justify-between">
                 <span className="text-slate-500">Scoring Engine:</span>
                 <span className="font-bold text-teal-700">
-                  (Correct-Wrong)×0.2 + SBA - (Wrong×0.05)
+                  [(175 - ভুল MCQ) × 0.2] + SBA - (ভুল MCQ × 0.05)
                 </span>
               </div>
             </div>

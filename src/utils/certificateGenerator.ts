@@ -43,17 +43,14 @@ export async function generateResultCardCanvas(result: ExamResult): Promise<HTML
   ctx.textAlign = 'center';
   ctx.fillStyle = '#38bdf8';
   ctx.font = 'bold 16px "Space Grotesk", sans-serif';
-  ctx.letterSpacing = '4px';
   ctx.fillText('CPR MEDICAL ACADEMY', 600, 95);
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '500 14px "Plus Jakarta Sans", sans-serif';
-  ctx.letterSpacing = '2px';
   ctx.fillText('RESIDENCY MD PAEDIATRICS FACULTY NOV-26', 600, 125);
 
   ctx.fillStyle = '#f8fafc';
   ctx.font = '700 32px "Space Grotesk", sans-serif';
-  ctx.letterSpacing = '1px';
   ctx.fillText('OFFICIAL RESIDENCY MERIT TRANSCRIPT', 600, 175);
 
   // Divider
@@ -67,32 +64,34 @@ export async function generateResultCardCanvas(result: ExamResult): Promise<HTML
   // Candidate Name Block
   ctx.fillStyle = '#94a3b8';
   ctx.font = '14px "Plus Jakarta Sans", sans-serif';
-  ctx.letterSpacing = '1px';
   ctx.fillText('PROUDLY PRESENTED TO CANDIDATE', 600, 235);
 
   ctx.fillStyle = '#fbbf24';
   ctx.font = 'bold 36px "Plus Jakarta Sans", sans-serif';
-  ctx.letterSpacing = '0.5px';
-  ctx.fillText(result.userName || 'Dr. Candidate', 600, 280);
+  ctx.fillText(result?.userName || 'Dr. Candidate', 600, 280);
 
   ctx.fillStyle = '#cbd5e1';
   ctx.font = '16px "Plus Jakarta Sans", sans-serif';
-  ctx.letterSpacing = '0px';
-  ctx.fillText(result.userInstitute || 'CPR Medical Academy', 600, 312);
+  ctx.fillText(result?.userInstitute || 'CPR Medical Academy', 600, 312);
 
-  // Score Highlight Cards (3-col box)
-  // Left: Total Score
-  // Middle: Percentage
-  // Right: Faculty Standing / Rank
+  // Safe numbers for Score Highlight Cards
+  const finalScore = Number(result?.formula?.finalScore ?? result?.scoreMarks ?? 0) || 0;
+  const percentage = Number(result?.percentage ?? 0) || 0;
+  const mcqIntermediate = Number(result?.formula?.mcqIntermediateScore ?? result?.formula?.step2Result ?? 0) || 0;
+  const sbaScore = Number(result?.formula?.sbaCorrect ?? 0) || 0;
+  const negativeDeduction = Number(result?.formula?.negativeDeduction ?? 0) || 0;
+  const isPassed = Boolean(result?.passed ?? (finalScore >= 24.0));
+
   const cardY = 350;
   const cardH = 135;
+
   const cards = [
-    { label: 'FINAL COMPUTED SCORE', val: `${result.formula.finalScore.toFixed(2)} / 40.0`, sub: 'Calculated CPR Formula' },
-    { label: 'ACCURACY RATE', val: `${result.percentage.toFixed(1)}%`, sub: result.passed ? 'PASSED (≥24.0)' : 'NEEDS REVISION' },
+    { label: 'FINAL COMPUTED SCORE', val: `${finalScore.toFixed(2)} / 40.0`, sub: 'Calculated CPR Formula' },
+    { label: 'ACCURACY RATE', val: `${percentage.toFixed(1)}%`, sub: isPassed ? 'PASSED (≥24.0)' : 'NEEDS REVISION' },
     {
       label: 'FORMULA BREAKDOWN',
-      val: `${result.formula.mcqIntermediateScore.toFixed(1)} + ${result.formula.sbaCorrect}`,
-      sub: `Penalty: -${result.formula.negativeDeduction.toFixed(2)} Marks`,
+      val: `${mcqIntermediate.toFixed(1)} + ${sbaScore}`,
+      sub: `Penalty: -${negativeDeduction.toFixed(2)} Marks`,
     },
   ];
 
@@ -110,7 +109,6 @@ export async function generateResultCardCanvas(result: ExamResult): Promise<HTML
     ctx.textAlign = 'center';
     ctx.fillStyle = '#94a3b8';
     ctx.font = '600 12px "Space Grotesk", sans-serif';
-    ctx.letterSpacing = '1.5px';
     ctx.fillText(c.label, x + 130, cardY + 35);
 
     ctx.fillStyle = idx === 1 ? '#34d399' : '#ffffff';
@@ -125,9 +123,9 @@ export async function generateResultCardCanvas(result: ExamResult): Promise<HTML
   // Topic Breakdown Chips
   const topicY = 525;
   const topics = [
-    { name: 'Neurology', data: result.topicBreakdown.Neurology },
-    { name: 'Endocrinology', data: result.topicBreakdown.Endocrinology },
-    { name: 'Rheumatology', data: result.topicBreakdown.Rheumatology },
+    { name: 'Neurology', data: result?.topicBreakdown?.Neurology },
+    { name: 'Endocrinology', data: result?.topicBreakdown?.Endocrinology },
+    { name: 'Rheumatology', data: result?.topicBreakdown?.Rheumatology },
   ];
 
   ctx.textAlign = 'left';
@@ -137,7 +135,8 @@ export async function generateResultCardCanvas(result: ExamResult): Promise<HTML
 
   topics.forEach((t, i) => {
     const startX = 310 + i * 250;
-    const pct = t.data ? t.data.percentage.toFixed(0) : '0';
+    const rawPct = t.data ? Number(t.data.percentage || 0) : 0;
+    const pct = isNaN(rawPct) ? '0' : rawPct.toFixed(0);
     ctx.fillStyle = '#cbd5e1';
     ctx.font = '500 13px "Plus Jakarta Sans", sans-serif';
     ctx.fillText(`${t.name}: `, startX, topicY);
@@ -151,31 +150,31 @@ export async function generateResultCardCanvas(result: ExamResult): Promise<HTML
   ctx.textAlign = 'left';
   ctx.fillStyle = '#64748b';
   ctx.font = '12px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText(`Issued: ${result.date}`, 160, 615);
-  ctx.fillText(`Certificate ID: CPR-MD-${result.id.slice(0, 8).toUpperCase()}`, 160, 635);
+  ctx.fillText(`Issued: ${result?.date || 'Recent'}`, 160, 615);
 
   ctx.textAlign = 'right';
   ctx.fillStyle = '#38bdf8';
-  ctx.font = '600 13px "Space Grotesk", sans-serif';
-  ctx.fillText('VERIFIED RESIDENCY ASSESSMENT', 1040, 615);
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '11px "Plus Jakarta Sans", sans-serif';
-  ctx.fillText('CPR Medical Academy · Faculty Examination Board', 1040, 635);
+  ctx.font = 'bold 12px "Space Grotesk", sans-serif';
+  ctx.fillText('CPR MEDICAL ACADEMY · OFFICIAL FACULTY SYSTEM', 1040, 615);
 
   return canvas;
 }
 
-export async function downloadCertificateImage(result: ExamResult): Promise<void> {
+export async function downloadCertificateImage(result: ExamResult | null) {
+  if (!result) return;
   const canvas = await generateResultCardCanvas(result);
   const dataUrl = canvas.toDataURL('image/png');
   const anchor = document.createElement('a');
   anchor.href = dataUrl;
   const sanitizedName = (result.userName || 'Candidate').replace(/[^a-zA-Z0-9]/g, '_');
-  anchor.download = `CPR_Residency_Result_${sanitizedName}_${result.percentage.toFixed(0)}pct.png`;
+  const pct = Number(result.percentage || 0);
+  const pctStr = isNaN(pct) ? '0' : pct.toFixed(0);
+  anchor.download = `CPR_Residency_Result_${sanitizedName}_${pctStr}pct.png`;
   anchor.click();
 }
 
-export async function copyCertificateToClipboard(result: ExamResult): Promise<boolean> {
+export async function copyCertificateToClipboard(result: ExamResult | null): Promise<boolean> {
+  if (!result) return false;
   try {
     const canvas = await generateResultCardCanvas(result);
     return new Promise((resolve) => {
@@ -200,9 +199,23 @@ export async function copyCertificateToClipboard(result: ExamResult): Promise<bo
   }
 }
 
-export function getShareUrls(result: ExamResult) {
-  const text = `🎯 I scored ${result.formula.finalScore.toFixed(2)}/40.0 (${result.percentage.toFixed(1)}%) in the CPR Medical Academy Residency MD Paediatrics Exam (Neurology, Endocrinology, Rheumatology)! [Formula: (Correct-Wrong)×0.2 + SBA - Neg]. Test your knowledge here:`;
-  const url = window.location.href;
+export function getShareUrls(result: ExamResult | null) {
+  if (!result) {
+    return {
+      whatsapp: '',
+      twitter: '',
+      facebook: '',
+      linkedin: '',
+      telegram: '',
+      shareText: '',
+    };
+  }
+  const finalScore = Number(result.formula?.finalScore ?? result.scoreMarks ?? 0) || 0;
+  const pct = Number(result.percentage ?? 0) || 0;
+  const scoreStr = isNaN(finalScore) ? '0.00' : finalScore.toFixed(2);
+  const pctStr = isNaN(pct) ? '0.0' : pct.toFixed(1);
+  const text = `🎯 I scored ${scoreStr}/40.0 (${pctStr}%) in the CPR Medical Academy Residency MD Paediatrics Exam! [Formula: (175 - ভুল MCQ)×0.2 + SBA - (ভুল MCQ×0.05)]. Test your knowledge here:`;
+  const url = typeof window !== 'undefined' ? window.location.href : '';
 
   return {
     whatsapp: `https://api.whatsapp.com/send?text=${encodeURIComponent(`${text} ${url}`)}`,

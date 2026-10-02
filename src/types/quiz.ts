@@ -50,16 +50,20 @@ export interface UserAnswers {
 }
 
 export interface ExamFormulaBreakdown {
-  mcqCorrect: number;
-  mcqWrong: number;
-  mcqUnattempted: number;
-  mcqIntermediateScore: number; // (mcqCorrect - mcqWrong) * 0.2
-  sbaCorrect: number;
-  sbaWrong: number;
-  sbaUnattempted: number;
-  negativeDeduction: number; // mcqWrong * 0.05
-  finalScore: number; // mcqIntermediateScore + sbaCorrect - negativeDeduction
-  maxMarks: number; // 40.0 (35 MCQ marks + 5 SBA marks)
+  totalMCQStems: number; // 175
+  mcqWrong: number; // ভুল MCQ
+  step1Result: number; // 175 - ভুল MCQ
+  step2Result: number; // প্রাপ্ত ফলাফল × 0.2
+  sbaCorrect: number; // সঠিক SBA
+  step3Result: number; // প্রাপ্ত ফলাফল + সঠিক SBA
+  negativeDeduction: number; // ভুল MCQ সংখ্যা × 0.05
+  finalScore: number; // প্রাপ্ত ফলাফলই সর্বশেষ রেজাল্ট
+  maxMarks: number; // 40.0
+  mcqCorrect?: number;
+  mcqUnattempted?: number;
+  sbaWrong?: number;
+  sbaUnattempted?: number;
+  mcqIntermediateScore?: number;
 }
 
 export interface ExamResult {
@@ -85,6 +89,7 @@ export interface ExamResult {
   };
   passed: boolean;
   rank?: number;
+  userAnswers?: UserAnswers;
 }
 
 export interface LeaderboardEntry {

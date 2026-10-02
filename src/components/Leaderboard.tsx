@@ -21,12 +21,12 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 
   const filteredEntries = entries.filter((entry) => {
     const matchesSearch =
-      entry.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.institute.toLowerCase().includes(searchQuery.toLowerCase());
+      (entry.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (entry.institute || '').toLowerCase().includes(searchQuery.toLowerCase());
     if (!matchesSearch) return false;
 
     if (filterMode === 'top') {
-      return entry.finalScore >= 30.0;
+      return (Number(entry.finalScore) || 0) >= 30.0;
     }
     return true;
   });
@@ -39,7 +39,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
   };
 
   const currentUserRankIndex = entries.findIndex(
-    (e) => e.isCurrentUser || e.name.toLowerCase() === currentUserName.toLowerCase()
+    (e) => e.isCurrentUser || (e.name || '').toLowerCase() === (currentUserName || '').toLowerCase()
   );
   const currentUserRank = currentUserRankIndex >= 0 ? currentUserRankIndex + 1 : null;
 
@@ -57,9 +57,9 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
               Faculty High Scores & Merit Standings
             </h1>
             <p className="text-slate-300 text-sm max-w-xl">
-              Track top doctors ranked by the standardized CPR Medical Academy formula:
-              <span className="block font-mono text-xs text-amber-300 mt-1">
-                [(Correct MCQ - Wrong MCQ) × 0.2] + SBA - (Wrong MCQ × 0.05)
+              অফিশিয়াল নিয়মে প্রস্তুতকৃত ফলাফল ও মেধাতালিকা (Official Formula):
+              <span className="block font-mono text-xs text-amber-300 mt-1.5 bg-black/30 p-2.5 rounded-lg border border-white/10 leading-relaxed">
+                ১. ১৭৫ - ভুল MCQ ➔ ২. প্রাপ্ত ফলাফল × ০.২ ➔ ৩. + সঠিক SBA ➔ ৪. - (ভুল MCQ × ০.০৫) ➔ ৫. সর্বশেষ রেজাল্ট
               </span>
             </p>
           </div>
@@ -78,7 +78,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
             )}
             <button
               onClick={onStartExam}
-              className="px-5 py-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm shadow-md transition-colors flex items-center gap-2"
+              className="px-5 py-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm shadow-md transition-colors flex items-center gap-2 cursor-pointer"
             >
               <Award className="w-4 h-4" />
               <span>Take Exam & Rank Up</span>
@@ -95,6 +95,9 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
             { bg: 'bg-slate-200/50 border-slate-300', text: 'text-slate-800', medal: 'text-slate-400', label: '2nd Merit (Silver)' },
             { bg: 'bg-orange-500/10 border-orange-300', text: 'text-orange-800', medal: 'text-amber-700', label: '3rd Merit (Bronze)' },
           ][idx];
+
+          const finalScore = Number(entry.finalScore) || 0;
+          const percentage = Number(entry.percentage) || 0;
 
           return (
             <div
@@ -115,17 +118,17 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                   <span className="text-[11px] text-slate-400 block font-medium">Final Computed Score</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-black text-teal-800 font-mono">
-                      {entry.finalScore.toFixed(2)}
+                      {finalScore.toFixed(2)}
                     </span>
                     <span className="text-xs text-slate-500 font-mono">/ 40.0</span>
                   </div>
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-bold text-slate-700 font-mono block">
-                    {entry.percentage.toFixed(1)}%
+                    {percentage.toFixed(1)}%
                   </span>
                   <span className="text-[11px] text-emerald-700 font-medium">
-                    SBA: {entry.sbaCorrect}/5
+                    SBA: {Number(entry.sbaCorrect) || 0}/5
                   </span>
                 </div>
               </div>
@@ -151,7 +154,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
           <div className="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-semibold">
             <button
               onClick={() => setFilterMode('all')}
-              className={`px-3 py-1.5 rounded-lg transition-colors ${
+              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
                 filterMode === 'all'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -161,7 +164,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
             </button>
             <button
               onClick={() => setFilterMode('top')}
-              className={`px-3 py-1.5 rounded-lg transition-colors ${
+              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
                 filterMode === 'top'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -173,7 +176,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 
           <button
             onClick={handleReset}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             title="Reset default scores"
           >
             <RefreshCw className="w-4 h-4" />
@@ -199,7 +202,9 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
               {filteredEntries.map((entry, index) => {
                 const isUser =
                   entry.isCurrentUser ||
-                  entry.name.toLowerCase() === currentUserName.toLowerCase();
+                  (entry.name || '').toLowerCase() === (currentUserName || '').toLowerCase();
+
+                const finalScore = Number(entry.finalScore) || 0;
 
                 return (
                   <tr
@@ -264,36 +269,36 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                     <td className="py-4 px-4 text-center">
                       <div className="inline-flex items-baseline gap-1">
                         <span className="font-mono font-bold text-lg text-teal-800 tabular-nums">
-                          {entry.finalScore.toFixed(2)}
+                          {finalScore.toFixed(2)}
                         </span>
                         <span className="text-xs text-slate-400 font-mono">/ 40.0</span>
                       </div>
                     </td>
 
                     <td className="py-4 px-4 text-center text-xs text-slate-600 font-mono">
-                      <span>MCQ: {entry.mcqCorrect}✓ {entry.mcqWrong}✗</span>
+                      <span>MCQ: {Number(entry.mcqCorrect) || 0}✓ {Number(entry.mcqWrong) || 0}✗</span>
                       <span className="text-slate-400 mx-1">·</span>
-                      <span>SBA: {entry.sbaCorrect}/5</span>
+                      <span>SBA: {Number(entry.sbaCorrect) || 0}/5</span>
                     </td>
 
                     <td className="py-4 px-4 text-center text-xs text-slate-500 font-mono">
                       <span className="inline-flex items-center gap-1">
                         <Clock className="w-3 h-3 text-slate-400" />
-                        {entry.timeTaken}
+                        {entry.timeTaken || '—'}
                       </span>
                     </td>
 
                     <td className="py-4 px-4 text-right">
                       <span
                         className={`text-xs font-semibold ${
-                          entry.finalScore >= 34.0
+                          finalScore >= 34.0
                             ? 'text-amber-700'
-                            : entry.finalScore >= 24.0
+                            : finalScore >= 24.0
                             ? 'text-teal-700'
                             : 'text-slate-500'
                         }`}
                       >
-                        {entry.badge || (entry.finalScore >= 24.0 ? 'Passed' : 'Needs Revision')}
+                        {entry.badge || (finalScore >= 24.0 ? 'Passed' : 'Needs Revision')}
                       </span>
                     </td>
                   </tr>

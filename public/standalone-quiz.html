@@ -520,7 +520,7 @@
                     <tr class="hover:bg-slate-50">
                       <td class="p-3 text-center font-bold font-mono">#${idx + 1}</td>
                       <td class="p-3 font-semibold text-slate-900">${item.name}</td>
-                      <td class="p-3 text-center font-bold text-teal-800 font-mono">${item.finalScore.toFixed(2)} / 40.0</td>
+                      <td class="p-3 text-center font-bold text-teal-800 font-mono">${(item.finalScore != null ? Number(item.finalScore) : 0).toFixed(2)} / 40.0</td>
                       <td class="p-3 text-center font-mono text-xs">${item.mcqCorrect}✓ / ${item.mcqWrong}✗</td>
                       <td class="p-3 text-center font-mono text-xs">${item.sbaCorrect}/5</td>
                     </tr>

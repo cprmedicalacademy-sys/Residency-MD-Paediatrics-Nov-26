@@ -62,10 +62,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
   const userRank = userRankIdx >= 0 ? userRankIdx + 1 : null;
 
-  // Latest and best results
-  const latestResult = examHistory[0];
+  // Latest and best results with safe fallback
+  const getScore = (item: ExamResult | null): number => {
+    if (!item) return 0;
+    return Number(item.formula?.finalScore ?? item.scoreMarks ?? 0) || 0;
+  };
+
+  const latestResult = examHistory[0] || null;
   const bestResult = examHistory.reduce<ExamResult | null>((best, curr) => {
-    if (!best || curr.formula.finalScore > best.formula.finalScore) return curr;
+    if (!best || getScore(curr) > getScore(best)) return curr;
     return best;
   }, null);
 
@@ -75,10 +80,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     let totalQuestions = 0;
     let totalCorrect = 0;
     examHistory.forEach((ex) => {
-      const breakdown = ex.topicBreakdown[sub as keyof typeof ex.topicBreakdown];
+      const breakdown = ex.topicBreakdown?.[sub as keyof typeof ex.topicBreakdown];
       if (breakdown) {
-        totalQuestions += breakdown.total;
-        totalCorrect += breakdown.correct;
+        totalQuestions += Number(breakdown.total) || 0;
+        totalCorrect += Number(breakdown.correct) || 0;
       }
     });
     const pct = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
@@ -121,14 +126,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     />
                     <button
                       type="submit"
-                      className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold"
+                      className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold cursor-pointer"
                     >
                       Save
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsEditingName(false)}
-                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
+                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -146,7 +151,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         setTempInstitute(userProfile.institute);
                         setIsEditingName(true);
                       }}
-                      className="p-1 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-md transition-colors"
+                      className="p-1 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-md transition-colors cursor-pointer"
                       title="Edit candidate name & institute"
                     >
                       <Edit3 className="w-4 h-4" />
@@ -161,7 +166,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <GraduationCap className="w-3.5 h-3.5" /> MD Paediatrics Faculty Nov-26
                     </span>
                     <span>·</span>
-                    <span>Standard CPR Formula Grading</span>
+                    <span>CPR Formula: (175 - ভুল MCQ)×0.2 + SBA - Neg</span>
                   </div>
                 </>
               )}
@@ -172,14 +177,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
             <button
               onClick={() => onStartExam('exam')}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-sm transition-colors whitespace-nowrap"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-sm transition-colors whitespace-nowrap cursor-pointer"
             >
               <Play className="w-4 h-4 fill-white" />
               <span>Start Exam Mode</span>
             </button>
             <button
               onClick={() => onStartExam('practice')}
-              className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-slate-300 hover:border-teal-400 hover:bg-teal-50/50 text-slate-700 text-sm font-semibold transition-colors whitespace-nowrap"
+              className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-slate-300 hover:border-teal-400 hover:bg-teal-50/50 text-slate-700 text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer"
             >
               <Sparkles className="w-4 h-4 text-amber-500" />
               <span>Practice Mode</span>
@@ -206,7 +211,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
           <button
             onClick={onViewLeaderboard}
-            className="text-[11px] text-teal-700 hover:text-teal-900 mt-2 font-bold block"
+            className="text-[11px] text-teal-700 hover:text-teal-900 mt-2 font-bold block cursor-pointer"
           >
             View Leaderboard &rarr;
           </button>
@@ -220,7 +225,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
           <div className="flex items-baseline gap-1">
             <span className="text-3xl font-black text-slate-900 font-mono">
-              {bestResult ? bestResult.formula.finalScore.toFixed(2) : '0.00'}
+              {bestResult ? (Number(bestResult.formula?.finalScore ?? bestResult.scoreMarks ?? 0) || 0).toFixed(2) : '0.00'}
             </span>
             <span className="text-xs text-slate-500 font-mono">/ 40.0</span>
           </div>
@@ -258,7 +263,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </span>
             {latestResult && (
               <span className="text-xs text-teal-700 font-bold font-mono">
-                {latestResult.formula.finalScore.toFixed(2)}/40
+                {(Number(latestResult.formula?.finalScore ?? latestResult.scoreMarks ?? 0) || 0).toFixed(2)}/40
               </span>
             )}
           </div>
@@ -268,26 +273,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* Formula Guide Card */}
-      <div className="bg-gradient-to-r from-teal-900 via-slate-900 to-teal-950 text-white rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
+      {/* Official 5-Step Formula Guide Card */}
+      <div className="bg-gradient-to-r from-teal-900 via-slate-900 to-teal-950 text-white rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5 border border-teal-800/40">
+        <div className="space-y-2">
           <div className="flex items-center gap-2 text-teal-300 font-bold text-xs uppercase tracking-wider">
             <Calculator className="w-4 h-4 text-amber-400" />
-            <span>Residency MD Paediatrics Scoring Rules</span>
+            <span>রেজাল্ট তৈরির অফিশিয়াল নিয়ম (Official CPR Result Formula)</span>
           </div>
-          <p className="text-xs text-slate-300 max-w-xl">
-            1. MCQ (True/False): <span className="text-white font-mono">(Correct - Wrong) × 0.2</span>
-            <br />
-            2. Add correct SBA score: <span className="text-white font-mono">+ SBA Correct</span>
-            <br />
-            3. Negative Marking: <span className="text-rose-300 font-mono">- (Wrong MCQ × 0.05)</span>
-          </p>
+          <div className="text-xs text-slate-200 font-mono space-y-1 bg-black/25 p-3 rounded-xl border border-white/10">
+            <div>১. <span className="text-amber-300 font-bold">১৭৫ - ভুল MCQ (True/False)</span></div>
+            <div>২. <span className="text-teal-300 font-bold">প্রাপ্ত ফলাফল × ০.২</span></div>
+            <div>৩. <span className="text-emerald-300 font-bold">প্রাপ্ত ফলাফল + সঠিক SBA</span></div>
+            <div>৪. <span className="text-rose-300 font-bold">প্রাপ্ত ফলাফল - (ভুল MCQ সংখ্যা × ০.০৫)</span></div>
+            <div>৫. <span className="text-white font-black">প্রাপ্ত ফলাফলই সর্বশেষ রেজাল্ট (সর্বোচ্চ ৪০.০ নম্বর)</span></div>
+          </div>
         </div>
         <button
           onClick={() => onStartExam('exam')}
-          className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-xs font-bold transition-colors shrink-0"
+          className="px-5 py-3 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-xs font-bold transition-colors shrink-0 shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
         >
-          Launch Timed Exam
+          <Play className="w-3.5 h-3.5 fill-slate-950" />
+          <span>Launch Timed Exam</span>
         </button>
       </div>
 
@@ -308,7 +314,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           <div className="space-y-5">
             {subjectAggregates.map((sub) => {
-              const displayPct = sub.totalQuestions > 0 ? sub.percentage : 0;
+              const displayPct = Number(sub.totalQuestions > 0 ? sub.percentage : 0) || 0;
               return (
                 <div key={sub.name} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
@@ -364,7 +370,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           <button
             onClick={() => onStartExam('practice')}
-            className="w-full py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+            className="w-full py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <span>Practice High-Yield Cases</span>
             <ChevronRight className="w-4 h-4" />
@@ -397,66 +403,74 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-y border-slate-200">
                   <th className="py-3 px-4">Date & Mode</th>
                   <th className="py-3 px-4 text-center">Final Computed Score</th>
-                  <th className="py-3 px-4 text-center">Formula Breakdown</th>
+                  <th className="py-3 px-4 text-center">Formula Breakdown (Bengali Rules)</th>
                   <th className="py-3 px-4 text-center">Status</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {examHistory.map((res) => (
-                  <tr key={res.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2 text-xs text-slate-700 font-medium">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{res.date}</span>
+                {examHistory.map((res) => {
+                  const finalScore = Number(res.formula?.finalScore ?? res.scoreMarks ?? 0) || 0;
+                  const step2 = Number(res.formula?.step2Result ?? res.formula?.mcqIntermediateScore ?? 0) || 0;
+                  const sba = Number(res.formula?.sbaCorrect ?? 0) || 0;
+                  const neg = Number(res.formula?.negativeDeduction ?? 0) || 0;
+                  const maxM = Number(res.formula?.maxMarks ?? res.totalMarks ?? 40) || 40;
+
+                  return (
+                    <tr key={res.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2 text-xs text-slate-700 font-medium">
+                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{res.date}</span>
+                          </div>
+                          <span className="text-[10px] uppercase font-bold text-teal-700 block">
+                            {res.examMode === 'practice' ? 'Practice Mode' : 'Exam Mode (Timed)'}
+                          </span>
                         </div>
-                        <span className="text-[10px] uppercase font-bold text-teal-700 block">
-                          {res.examMode === 'practice' ? 'Practice Mode' : 'Exam Mode (Timed)'}
+                      </td>
+                      <td className="py-3.5 px-4 text-center font-mono">
+                        <span className="text-base font-bold text-teal-800">
+                          {finalScore.toFixed(2)}
                         </span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 text-center font-mono">
-                      <span className="text-base font-bold text-teal-800">
-                        {res.formula.finalScore.toFixed(2)}
-                      </span>
-                      <span className="text-xs text-slate-400"> / {res.formula.maxMarks.toFixed(1)}</span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center font-mono text-xs text-slate-600">
-                      <span>MCQ: {res.formula.mcqIntermediateScore.toFixed(2)}</span>
-                      <span className="text-slate-400 mx-1">·</span>
-                      <span>SBA: +{res.formula.sbaCorrect}</span>
-                      <span className="text-slate-400 mx-1">·</span>
-                      <span className="text-rose-600">Neg: -{res.formula.negativeDeduction.toFixed(2)}</span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span
-                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                          res.passed
-                            ? 'bg-emerald-50 text-emerald-700'
-                            : 'bg-rose-50 text-rose-700'
-                        }`}
-                      >
-                        {res.passed ? 'PASSED' : 'RETRY'}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right space-x-2">
-                      <button
-                        onClick={() => onReviewExam(res)}
-                        className="text-xs font-semibold text-teal-700 hover:text-teal-900 px-2.5 py-1 rounded-md hover:bg-teal-50 transition-colors"
-                      >
-                        Review
-                      </button>
-                      <button
-                        onClick={() => onShareResult(res)}
-                        className="text-xs font-semibold text-slate-600 hover:text-slate-900 px-2.5 py-1 rounded-md hover:bg-slate-100 transition-colors inline-flex items-center gap-1"
-                      >
-                        <Share2 className="w-3 h-3" />
-                        <span>Share</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                        <span className="text-xs text-slate-400"> / {maxM.toFixed(1)}</span>
+                      </td>
+                      <td className="py-3.5 px-4 text-center font-mono text-xs text-slate-600">
+                        <span>MCQ: {step2.toFixed(2)}</span>
+                        <span className="text-slate-400 mx-1">·</span>
+                        <span>SBA: +{sba}</span>
+                        <span className="text-slate-400 mx-1">·</span>
+                        <span className="text-rose-600">Neg: -{neg.toFixed(2)}</span>
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <span
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                            res.passed
+                              ? 'bg-emerald-50 text-emerald-700'
+                              : 'bg-rose-50 text-rose-700'
+                          }`}
+                        >
+                          {res.passed ? 'PASSED' : 'RETRY'}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right space-x-2">
+                        <button
+                          onClick={() => onReviewExam(res)}
+                          className="text-xs font-semibold text-teal-700 hover:text-teal-900 px-2.5 py-1 rounded-md hover:bg-teal-50 transition-colors cursor-pointer"
+                        >
+                          Review
+                        </button>
+                        <button
+                          onClick={() => onShareResult(res)}
+                          className="text-xs font-semibold text-slate-600 hover:text-slate-900 px-2.5 py-1 rounded-md hover:bg-slate-100 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Share2 className="w-3 h-3" />
+                          <span>Share</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -471,7 +485,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </p>
             <button
               onClick={() => onStartExam('exam')}
-              className="mt-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs"
+              className="mt-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <Play className="w-3.5 h-3.5 fill-white" />
               <span>Begin Exam</span>
